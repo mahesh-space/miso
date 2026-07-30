@@ -1,0 +1,13 @@
+import React, { useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { useApp } from './context/AppContext';
+import { AppShell } from './components/Layout';
+import { AuthPage } from './pages/AuthPage';
+import { CustomerPage } from './pages/CustomerPage';
+import { DriverPage } from './pages/DriverPage';
+import { AdminOverview, AdminOrders, AdminPartners, AdminRestaurants } from './pages/AdminPage';
+import { SettingsPage } from './pages/SettingsPage';
+
+function Guard({ role, children }) { const { session, loading, notify } = useApp(); const navigate = useNavigate(); const location = useLocation(); useEffect(() => { if (!loading && session && session.role !== role) { const destination = session.role === 'customer' ? '/customer' : session.role === 'driver' ? '/driver' : '/admin'; notify('That workspace is not available for your account.', 'error'); navigate(destination, { replace: true, state: { unauthorizedFrom: location.pathname } }); } }, [loading, session, role, navigate, notify, location.pathname]); if (loading) return <div className="auth-card loading-screen"><p className="eyebrow">Connecting to miso</p><h2>Opening your workspace…</h2></div>; if (!session) return <Navigate to="/login" replace state={{ from: location.pathname }}/>; if (session.role !== role) return null; return <AppShell>{children}</AppShell>; }
+
+export default function App() { const { session } = useApp(); const landing = session ? (session.role === 'customer' ? '/customer' : session.role === 'driver' ? '/driver' : '/admin') : '/login'; return <Routes><Route path="/login" element={session ? <Navigate to={landing} replace/> : <AuthPage/>}/><Route path="/customer" element={<Guard role="customer"><CustomerPage/></Guard>}/><Route path="/customer/orders" element={<Guard role="customer"><CustomerPage ordersOnly/></Guard>}/><Route path="/customer/settings" element={<Guard role="customer"><SettingsPage/></Guard>}/><Route path="/driver" element={<Guard role="driver"><DriverPage/></Guard>}/><Route path="/driver/earnings" element={<Guard role="driver"><DriverPage earningsOnly/></Guard>}/><Route path="/driver/settings" element={<Guard role="driver"><SettingsPage/></Guard>}/><Route path="/admin" element={<Guard role="admin"><AdminOverview/></Guard>}/><Route path="/admin/orders" element={<Guard role="admin"><AdminOrders/></Guard>}/><Route path="/admin/restaurants" element={<Guard role="admin"><AdminRestaurants/></Guard>}/><Route path="/admin/partners" element={<Guard role="admin"><AdminPartners/></Guard>}/><Route path="/admin/settings" element={<Guard role="admin"><SettingsPage/></Guard>}/><Route path="*" element={<Navigate to={landing} replace/>}/></Routes>; }

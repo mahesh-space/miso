@@ -1,0 +1,5 @@
+import React from 'react';
+import { Check, MapPin } from 'lucide-react';
+import { statusLabels, statusSteps } from '../data/mockData';
+export function StatusTracker({ status }) { const index = statusSteps.indexOf(status); return <div className="tracker">{statusSteps.map((step, i) => <div className={index >= i ? 'track-step done' : 'track-step'} key={step}><span>{index >= i ? <Check size={12}/> : i + 1}</span><small>{statusLabels[step]}</small></div>)}</div>; }
+export function OrderCard({ order, compact = false }) { return <div className={compact ? 'order-row' : 'order-card'}><div className="mini-food">🍱</div><div className="order-row-main"><span className="order-id">{order.id}</span><strong>{order.restaurant}</strong><small>{order.customer || order.partner || 'Miso order'} · ₹{Number(order.total_amount).toLocaleString('en-IN')}</small></div><span className={`status status-${order.status.replaceAll('_', '-').toLowerCase()}`}>{statusLabels[order.status] || order.status}</span>{!compact && <><StatusTracker status={order.status}/><p className="order-address"><MapPin size={15}/>{order.delivery_address}</p></>}</div>; }
